@@ -14,17 +14,17 @@ int main( int argc, char *argv[]) {
 
 	if (argc > 1){
 
-		if (fork()) { //processus fils
+		if (fork()) { //processus père
 			close(tab[1]); // ferme l’entrée du tube
 			dup2(tab[0] , 0); // copie la sortie du tube vers l’entrée standard
 			close(tab[0]); // ferme le descripteur de la sortie du tube
 			execlp("wc", "wc",NULL); // remplace les instructions du fils par wc
 		}
-		else { // processus pere
+		else { // processus fils
 			close(tab[0]); // ferme la sortie du tube.
 			dup2(tab[1] , 1); // copie l’entrée du tube vers la sortie standard
 			close(tab[1]); // ferme le descripteur de l’entrée du tube
-			execlp("cat", "cat",argv[1],NULL); // rempace les isnructions du pere par cat
+			execlp("cat", "cat",argv[1],NULL); // remplace les instructions du pere par cat
 		}
 
 		printf("cat %s | wc : \n", argv[1]);
