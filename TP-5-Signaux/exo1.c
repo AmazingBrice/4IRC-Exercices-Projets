@@ -13,7 +13,6 @@ void redirect(int signal)
     printf("Reception du signal SIGINT -> Arret du programme\n");
     exit(1);
   }
-  fflush(stdout); // On vide le buffer
 }
 
 int main()
