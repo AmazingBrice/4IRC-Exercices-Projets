@@ -8,11 +8,9 @@
 
 void redirect(int signal)
 {
-  printf("\n Je receptionne le signal %d\n",signal);
-  if (signal == 2){
     printf("Reception du signal SIGINT -> Arret du programme\n");
     exit(1);
-  }
+  
 }
 
 int main()
@@ -28,7 +26,7 @@ int main()
   // Mise en place du gestionnaire pour gérer la redirection de SIGINT
   sigaction(SIGINT,&prepaSignal,0); // `CTRL+C`
 
-  // Il faut le tuer avec un kill -HUP avec le PID */
+  // Il faut le tuer avec un kill pid */
   while (1){
       printf("toto\t");
   }

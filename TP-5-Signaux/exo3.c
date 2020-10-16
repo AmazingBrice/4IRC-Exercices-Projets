@@ -15,7 +15,7 @@ void redirect (int signal) {
 
 int main()
 {
-    //Si Le signal SIGINT est envoyé, il est redirigé vers redirect
+    // Si Le signal SIGINT est envoyé, il est redirigé vers redirect
     struct sigaction prepaSignal; // Déclaration d'une structure sigaction pour la mise en place des gestionnaires
   
     prepaSignal.sa_handler=&redirect;
