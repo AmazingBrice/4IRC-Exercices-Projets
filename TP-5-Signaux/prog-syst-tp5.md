@@ -51,7 +51,7 @@ Ecrire un programme qui demande à l'utilisateur de taper au clavier un entier e
 
 Exemple de sortie écran possible:
 
->
+```
 $./exercice8
 Entrez un entier en moins de 5 secondes
 Svp un entier : a
@@ -64,3 +64,4 @@ Svp un entier : E
 Svp un entier : f
 Svp un entier : D
 Trop tard !! 
+```
