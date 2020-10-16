@@ -1,6 +1,5 @@
 CFLAGS = -Wall -Wextra -g -O 
-all: exe1v2 exe2v2 exe3
-exe1v2: exe1v2.c
-exe2v2: exe2v2.c
-exe3: exe3.c
-
+all: exo1 exo2 exo3
+exo1: exo1.c
+exo2: exo2.c
+exo3: exo3.c
