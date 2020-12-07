@@ -48,14 +48,17 @@ CL_WHITE="\033[01;37m"                  #  Blanc
 
 #-------------------------------------------------------
 
-from multiprocessing import * 
+from multiprocessing import * # Process, Value, Array
 import os, time,math, random, sys
 from array import array  # Attention : différent des 'Array' des Process
 
-sem = Semaphore()
-first=''
 
-keep_running=True # Fin de la course ?
+Nb_process = 20
+arrayVal = Array('i', range(Nb_process))
+
+sem = Semaphore()
+
+keep_running = Value('b', True) # Fin de la course ?
 lyst_colors=[CL_WHITE, CL_RED, CL_GREEN, CL_BROWN , CL_BLUE, CL_MAGENTA, CL_CYAN, CL_GRAY, CL_DARKGRAY, CL_LIGHTRED, CL_LIGHTGREEN, \
              CL_LIGHTBLU, CL_YELLOW, CL_LIGHTMAGENTA, CL_LIGHTCYAN]
 
@@ -79,8 +82,8 @@ def un_cheval(ma_ligne : int, process_name) : # ma_ligne commence à 0
     # move_to(20, 1); print("Le cheval ", chr(ord('A')+ma_ligne), " démarre ...")
     col=1
 
-    while col < LONGEUR_COURSE and keep_running :
-        move_to(ma_ligne+1,col) # pour effacer toute ma ligne
+    while col < LONGUEUR_COURSE and keep_running.value :
+        move_to(ma_ligne+2,col) # pour effacer toute ma ligne # ma_ligne + 2 car on a un input
         erase_line_from_beg_to_curs()
         en_couleur(lyst_colors[ma_ligne%len(lyst_colors)]) # affecte la couleur à ma ligne
         # Ajout du mutex
@@ -93,38 +96,72 @@ def un_cheval(ma_ligne : int, process_name) : # ma_ligne commence à 0
             print("   \     |")
             print("    ^    ^")
             print("\n")
+            print("\n")
+            print("\n")
+            print("\n")
+            print("\n")
             """
             print('('+chr(ord('A')+ma_ligne)+'>')
         col+=1
+        arrayVal[ma_ligne] = col
         time.sleep(0.1 * random.randint(1,5))
+    keep_running.value = False
 
+def getMin():
+    valMin = LONGUEUR_COURSE
+    for i in range(Nb_process) :
+        if arrayVal[i] < valMin :
+           valMin = arrayVal[i]
+           iMin = i
+    return iMin
+
+def getMax():
+    valMax = 0
+    for i in range(Nb_process) :
+        if arrayVal[i] > valMax :
+            valMax = arrayVal[i]
+            iMax = i
+    return iMax
+
+def arbitre(process_name, LONGUEUR_COURSE) : # fonction d'arbitrage executée uniquement par le processus referee
+    while keep_running.value :
+        with sem:
+            move_to(Nb_process+3, 1)
+            erase_line_from_beg_to_curs()
+            print('Le premier canasson est : %s le dernier canasson est : %s '% (chr(ord('A')+getMax()), chr(ord('A')+getMin())) )
+        time.sleep(0.1)
+    
 #------------------------------------------------
 
 if __name__ == "__main__" :
-    Nb_process=20
     mes_process = [0 for i in range(Nb_process)]
 
-    LONGEUR_COURSE = 10
+    LONGUEUR_COURSE = 10 #100
     effacer_ecran()
     curseur_invisible()
 
-    COLS = [] # Test pour avoir la liste des positions
-
-    guess_first = input('Qui sera le premier canasson de cette course  ?')
+    guess_first = input('Qui sera le premier canasson de cette course (Rentrer une lettre) ?')
 
     for i in range(Nb_process):  # Lancer     Nb_process  processus
         mes_process[i] = Process(target=un_cheval, args= (i,'processus' + str(i)))
         mes_process[i].start()
 
-    referee_process = Process(target=un_cheval, args=(i+1,'referee'))
-    referee_process.start()
-
-    move_to(Nb_process+10, 1)
+    move_to(Nb_process+2, 1)
     print("tous lancés")
-    print("Le premier canasson est :", first)
+
+    referee_process = Process(target=arbitre, args=('referee',LONGUEUR_COURSE,))
+    referee_process.start()
+    referee_process.join()
+
+    move_to(ord(guess_first)-ord('A')+2, 21) # Affichage à la ligne du premier
 
     for i in range(Nb_process): mes_process[i].join()
+    if (guess_first == (chr(ord('A')+getMax())) ):
+        print('Bravo !')
+    else :
+        print('Dommage, bien tenté !')
 
     move_to(24, 1)
     curseur_visible()
     print("Fini")
+    
