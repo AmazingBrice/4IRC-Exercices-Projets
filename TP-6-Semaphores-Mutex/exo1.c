@@ -1,35 +1,30 @@
+// BELDJILALI Ilies & FOLLEAS Brice
+
+// Includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <signal.h>
+#include <sys/types.h> /*fichier test_sem_dijkstra.c */
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include "dijkstra.c"
+#define CLE 1
 
-// Pour utiliser sigaction, on doit faire appel à des gestionnaires
-// Ici on définit un gestionnaire vers lequel seront redirigés les signaux par la suite
-
-void redirect(int signal)
-{
-    printf("Reception du signal SIGINT -> Arret du programme\n");
-    exit(1);
-  
-}
-
-int main()
-{
-  struct sigaction prepaSignal; // Déclaration d'une structure sigaction pour la mise en place des gestionnaires
-  
-  prepaSignal.sa_handler=&redirect; // Remplissage de la structure avec l'adresse du gestionnaire (redirect)
-  prepaSignal.sa_flags=0; // Mise a zero du champ sa_flags theoriquement ignoré
-  sigemptyset(&prepaSignal.sa_mask); // On ne bloque pas de signaux spécifiques
-
-  // Pour voir les différents signaux depuis un raccourci clavier utiliser : `stty -a`
-
-  // Mise en place du gestionnaire pour gérer la redirection de SIGINT
-  sigaction(SIGINT,&prepaSignal,0); // `CTRL+C`
-
-  // Il faut le tuer avec un kill pid */
-  while (1){
-      printf("toto\t");
+int main() {
+  int sem ;
+  sem = sem_create(CLE,0); // Creation semaphore
+  printf("Creation du sémaphore d'identificateur %d\n",sem);
+  if (fork() == 0) {
+    printf("Je suis le fils et j'attends 15 secondes...\n");
+    sleep(15) ;
+    printf("Je suis le fils et je fais V sur le sémaphore\n");
+    V(sem) ;
+    exit(0);
   }
-
-  return 0;
-}   
+  else {
+    printf("Je suis le père et je me bloque en faisant P sur le sémaphore\n\n");
+    P(sem);
+    printf("Je suis le père et je suis libre\n\n");
+    sem_delete(sem);
+  }
+}

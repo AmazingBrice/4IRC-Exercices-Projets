@@ -1,4 +1,4 @@
-##### BELDJILALI Ilies & FOLLÉAS Brice 
+# BELDJILALI Ilies & FOLLÉAS Brice
 
 import argparse
 
