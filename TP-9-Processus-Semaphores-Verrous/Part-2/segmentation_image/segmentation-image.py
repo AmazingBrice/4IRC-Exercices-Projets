@@ -17,27 +17,10 @@ from multiprocessing import shared_memory
 image_ = None  # sera chargée dans la partie Main (ici, on la 'pré−déclare')
 width, height = None, None  # respectivement, la largeur et la hauteur de l'image
 MAX_PROCESS = mp.Value('i', 12)
-NB_PROCESS = mp.Value('i', 0)
+
 ALL_DONE = mp.Value('b', False)
-Sem = mp.Semaphore(MAX_PROCESS.value)
 matrice_pixels = None
 
-dir_image = "./ressources"
-nom_fic_image = "bg.png"
-nom_fic_in = dir_image+'/'+nom_fic_image
-
-try:
-# nécessaire pour une image "png"
-    image_ = Image.open(nom_fic_in).convert("RGB")  
-    width, height = image_.size
-    matriceSize = width * height
-    matrice_pixels = shared_memory.SharedMemory(
-    create=True,  size=matriceSize)
-    matrice_pixels = image_.load()  # Importation des pixels de l'image
-
-except:
-    print("Problème avec le fichier ", nom_fic_in)
-    quit(1)
 
 
 
@@ -94,7 +77,7 @@ def Mesures_Std_et_Mu(corner_x, corner_y, region_w, region_h):
     return ((av_red, av_blue, av_green), (r+b+g)/3.0)
 
 
-def Decouper_en4(x, y, width, height, threshold_alpha):
+def Decouper_en4(x, y, width, height, threshold_alpha ,  nbProcess):
 
     if height*width < 4:
         return  # rien à découper
@@ -110,32 +93,35 @@ def Decouper_en4(x, y, width, height, threshold_alpha):
         array = [[x+width//2, y], [x, y+height//2], [x+width//2, y+height//2]]
 
         mes_process = [*range(3)]  # Création de 3 processus
-        Decouper_en4(x, y, width//2, height//2, threshold_alpha)
+        
 
           # Créer un processus
-        while ALL_DONE.value == False:
-            if ( 0 < NB_PROCESS.value and NB_PROCESS.value  < MAX_PROCESS.value ):
+        print("nbProcess.value " , nbProcess.value)
 
+          
+        for i in range(3):
+            
+            if ( 0 < nbProcess.value or nbProcess.value  < MAX_PROCESS.value - 1  ):
+                print("création du process " , i)
+
+                mes_process[i] = mp.Process(target=Decouper_en4, args=(
+                    array[i][0], array[i][1], width//2, height//2, threshold_alpha , nbProcess))
+                nbProcess.value += 1
+                print("nb process  " , nbProcess.value )
+
+                mes_process[i].start()
+
+            else :
+                Decouper_en4(array[i][0], array[i][1], width//2, height//2, threshold_alpha, nbProcess)
+
+        Decouper_en4(x, y, width//2, height//2, threshold_alpha, nbProcess)
+        for i in range(3):    
+            mes_process[i].join()
+            print("fin du process " , i )
+            nbProcess.value -= 1
+            print("nb process  " , nbProcess.value )
                 
-                for i in range(3):
-                    Sem.acquire()  # Attendre un jeton
-                    NB_PROCESS.value += 1
 
-                    mes_process[i] = mp.Process(target=Decouper_en4, args=(
-                        array[i][0], array[i][1], width//2, height//2, threshold_alpha))
-                    mes_process[i].start()
-                    print("création du process " , i)
-                    print("nb process  " , NB_PROCESS.value )
-
-                for i in range(3):    
-                    mes_process[i].join()
-                    print("fin du process " , i )
-                    Sem.release()
-                    NB_PROCESS.value -= 1
-                    print("nb process  " , NB_PROCESS.value )
- 
-
-                ALL_DONE.value = True    
 
 
 
@@ -154,14 +140,38 @@ def controller(max_process):
 
 
 if __name__ == '__main__':
+    dir_image = "./ressources"
+    nom_fic_image = "balls.png"
+    nom_fic_in = dir_image+'/'+nom_fic_image
 
+    try:
+    # nécessaire pour une image "png"
+        image_ = Image.open(nom_fic_in).convert("RGB")  
+        width, height = image_.size
+        matriceSize = width * height
+        matrice_pixels = shared_memory.SharedMemory(
+        create=True,  size=matriceSize)
+        matrice_pixels = image_.load()  # Importation des pixels de l'image
+
+    except:
+        print("Problème avec le fichier ", nom_fic_in)
+        quit(1)
+
+
+    NB_PROCESS = mp.Value('i', 0)
+    print("controller start...")
     process_controller = mp.Process(
         target=controller, args=(MAX_PROCESS.value,))
     process_controller.start()
 
     # tester avec les seuils différents 3, 10, 15, 20, ...
-    Decouper_en4(0, 0, width, height, 15)
+    print("decouper en 4 start...")
+    print("width height" , width , height )
+    
+    Decouper_en4(0, 0, width, height, 15, NB_PROCESS)
     image_.show()
+
+    print("controller end...")
 
     process_controller.join()
     # On sauvegarde le résultat
