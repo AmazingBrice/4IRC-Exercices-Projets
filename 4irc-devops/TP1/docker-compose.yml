@@ -1,0 +1,41 @@
+version: '3'
+services:
+  postgres:
+    build: .\Postgres
+    image: postgres:11.6-alpine
+    container_name: devops-tp1-postgres
+    networks: 
+      - mybridge
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=usr
+      - POSTGRES_DB=db
+      - POSTGRES_PASSWORD=pwd
+    restart: always
+
+  api:
+    build: .\API\simple-api
+    image: openjdk:11-jre
+    container_name: devops-tp1-api
+    networks: 
+      - mybridge
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: always
+
+  httpd:
+    build: .\Apache
+    image: httpd:2.4.46
+    container_name: devops-tp1-httpd
+    networks: 
+      - mybridge
+    ports:
+      - "80:80"
+    restart: always
+  
+networks:
+  mybridge:
+    driver: bridge
