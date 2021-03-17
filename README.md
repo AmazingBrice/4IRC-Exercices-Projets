@@ -4,8 +4,10 @@ Ce repository reprend tous les cours qui sont basés sur des tp lors de l'année
 
 Modules présents :
 
-- Programmation système
-- IOT
+- Android
 - Data Mining
+- Devops
+- IOT
+- Programmation Système
 
 ## Brice Folléas & Iliès Beldjilali
