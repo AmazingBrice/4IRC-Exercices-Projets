@@ -1,7 +1,5 @@
 # 4 IRC - Cours
 
-Ce repository reprend tous les cours qui sont basés sur des tp lors de l'année 4IRC.
-
 Modules présents :
 
 - Android
@@ -9,5 +7,3 @@ Modules présents :
 - Devops
 - IOT
 - Programmation Système
-
-## Brice Folléas & Iliès Beldjilali
